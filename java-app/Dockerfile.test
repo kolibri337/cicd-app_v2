@@ -1,6 +1,0 @@
-FROM gradle:jdk8-openj9
-
-COPY complete/ /gradle-build/
-
-WORKDIR /gradle-build/
-RUN gradle test
