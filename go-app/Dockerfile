@@ -14,7 +14,6 @@ FROM scratch
 COPY --from=builder /go-git /go-git
 # Добавляем статику
 COPY *.html /static/
-COPY *.jpg /static/
 
 EXPOSE 8080
 # Запускаем приложение
