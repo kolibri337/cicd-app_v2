@@ -1,6 +1,6 @@
 FROM gradle:jdk8-openj9 AS GRADLE_BUILD
 
-COPY complete/ /gradle-build/
+COPY . /gradle-build/
 
 WORKDIR /gradle-build/
 RUN gradle build -x test
