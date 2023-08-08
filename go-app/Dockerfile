@@ -1,5 +1,5 @@
 # Базовый образ ТОЛЬКО для сборки
-FROM golang:1.12.5 as builder
+FROM golang:1.15.15 as builder
 
 WORKDIR $GOPATH/src/go-git/
 COPY main.go .
