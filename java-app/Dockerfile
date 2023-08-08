@@ -1,11 +1,11 @@
-FROM gradle:jdk8-openj9 AS GRADLE_BUILD
+FROM gradle:jdk11-openj9 AS GRADLE_BUILD
 
 COPY . /gradle-build/
 
 WORKDIR /gradle-build/
 RUN gradle build -x test
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:17-ea-jdk-alpine3.14
 
 WORKDIR /app
 
