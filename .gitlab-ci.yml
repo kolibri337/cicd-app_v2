@@ -23,8 +23,9 @@ helm-lint:
 
 docker-lint:
   stage: lint
-  image: hadolint/hadolint
+  image: alpine:latest
   script:
+    - apk add --no-cache hadolint
     - hadolint Dockerfile
 
 test:
