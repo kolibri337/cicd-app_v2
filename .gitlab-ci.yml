@@ -3,6 +3,8 @@ stages:
   - test
   - cleanup
   - push
+  - deploy
+
 
 build:
   stage: build
