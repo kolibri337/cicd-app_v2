@@ -16,7 +16,12 @@ test:
     name: docker/compose:1.29.2
     entrypoint: [""]
   script:
-    - docker-compose -p "$CI_PROJECT_NAME"_"$CI_PIPELINE_ID" up --abort-on-container-exit --exit-code-from test --quiet-pull
+    - docker-compose 
+        -p "$CI_PROJECT_NAME"_"$CI_PIPELINE_ID"
+      up
+        --abort-on-container-exit
+        --exit-code-from test
+        --quiet-pull
 
 cleanup:
   stage: cleanup
@@ -33,8 +38,8 @@ push:
     - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG.$CI_PIPELINE_ID
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
+  only:
+    - main
 
 deploy:
   stage: deploy
@@ -46,14 +51,14 @@ deploy:
     - kubectl config set-credentials ci --token=$K8S_CI_TOKEN
     - kubectl config set-context ci --cluster=k8s --user=ci
     - kubectl config use-context ci
-    - helm upgrade --install $CI_PROJECT_PATH_SLUG .helm \
-        --set image=$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME \
-        --set imageTag=$CI_COMMIT_REF_SLUG.$CI_PIPELINE_ID \
-        --set ingress.host=app.$CI_PROJECT_NAMESPACE.edu.slurm.io \
-        --wait \
-        --timeout 300s \
-        --atomic \
-        --debug \
+    - helm upgrade --install $CI_PROJECT_PATH_SLUG .helm
+        --set image=$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+        --set imageTag=$CI_COMMIT_REF_SLUG.$CI_PIPELINE_ID
+        --set ingress.host=app.$CI_PROJECT_NAMESPACE.edu.slurm.io
+        --wait
+        --timeout 300s
+        --atomic
+        --debug
         --namespace $CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_NAME
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
+  only:
+    - main
