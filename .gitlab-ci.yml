@@ -1,10 +1,12 @@
+variables:
+  K8S_API_URL: https://172.16.76.2:6443
+
 stages:
   - build
   - test
   - cleanup
   - push
   - deploy
-
 
 build:
   stage: build
@@ -44,18 +46,21 @@ push:
 
 deploy:
   stage: deploy
-  before_script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $PRODUCTION_SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+  image: centosadmin/kubernetes-helm:3.6.3
+  environment:
+    name: production
   script:
-    - ssh root@"$PRODUCTION_SERVER_IP" "echo $CI_JOB_TOKEN | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY;
-      docker stop app; docker rm app;
-      docker run --name app
-      -p 80:8080
-      -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_SLUG.$CI_PIPELINE_ID"
+    - kubectl config set-cluster k8s --insecure-skip-tls-verify=true --server=$K8S_API_URL
+    - kubectl config set-credentials ci --token=$K8S_CI_TOKEN
+    - kubectl config set-context ci --cluster=k8s --user=ci
+    - kubectl config use-context ci
+    - helm upgrade --install $CI_PROJECT_PATH_SLUG .helm
+        --set image=$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME
+        --set imageTag=$CI_COMMIT_REF_SLUG.$CI_PIPELINE_ID
+        --wait
+        --timeout 300s
+        --atomic
+        --debug
+        --namespace $CI_PROJECT_PATH_SLUG-$CI_ENVIRONMENT_NAME
   only:
     - main
